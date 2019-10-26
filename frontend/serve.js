@@ -9,7 +9,9 @@ if (debug) {
 		browserify(__dirname + '/js/index.js', { debug: true }).bundle().pipe(res)
 	})
 } else {
-	execSync('browserify js/index.js -o bundle.js')
+	// execSync('browserify js/index.js -o bundle.js')
+	execSync('browserify js/index.js | terser --compress > bundle.js')
+	// execSync('browserify js/index.js | babel -f bundle.js | uglifyjs > bundle.js')
 }
 app.use(express.static(__dirname))
 app.listen(4000)

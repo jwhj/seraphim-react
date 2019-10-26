@@ -80,7 +80,7 @@ module.exports = {
 			this.$root.rpc('/game/answer', {
 				eid: this.$route.params.eid,
 				qid: this.state.opt[0],
-				ans: i
+				ans: [i, this.state.opt[1][i]]
 			}).then(this.getNext)
 		},
 		save() {

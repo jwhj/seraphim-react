@@ -28,7 +28,8 @@ module.exports = {
 			this.$root.rpc('/game/new', {
 				save
 			}).then(res => {
-				this.$router.push(`/game/${res.data}`)
+				this.$root.name = res.data.name
+				this.$router.push(`/game/${res.data.eid}`)
 			})
 		}
 	},
