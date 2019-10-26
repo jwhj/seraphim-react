@@ -1,4 +1,4 @@
-backend/games/
+backend/games/*
 backend/save
 start.go
 a.md
