@@ -1,0 +1,16 @@
+{
+  "name": "seraphim",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "https://github.com/jwhj/seraphim",
+  "author": "jwhj <jyuuku@outlook.com>",
+  "license": "MIT",
+  "browserify": {
+    "transform": [
+      "browserify-shim"
+    ]
+  },
+  "browserify-shim": {
+    "react": "global:React"
+  }
+}
