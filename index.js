@@ -19,8 +19,8 @@ if (process.argv.indexOf('debug') !== -1) {
 	router.get('/bundle.js', ctx => {
 		ctx.set('Content-Type', 'text/javascript')
 		ctx.body = browserify('src/index.js', { debug: true })
-			.transform(stringify)
-			.transform(sourceify)
+			// .transform(stringify)
+			// .transform(sourceify, { global: true })
 			.bundle()
 			.on('error', console.error)
 	})
@@ -28,7 +28,7 @@ if (process.argv.indexOf('debug') !== -1) {
 	app.use(mount('/source', serve('.')))
 }
 // router.use('/', serve(__dirname + '/public'))
-// router.use(require('./src/server').default.routes())
+router.use(require('./src/server').default.routes())
 // app.use(require('./server').default.routes())
 app.use(router.routes())
 app.use(mount('/', serve('public')))

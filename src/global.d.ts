@@ -1,1 +1,1 @@
-declare const ReactDOM
+declare const ReactDOM, MaterialUI, ReactRouterDOM

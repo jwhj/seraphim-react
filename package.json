@@ -11,6 +11,8 @@
     ]
   },
   "browserify-shim": {
-    "react": "global:React"
+    "react": "global:React",
+    "axios": "global:axios",
+    "typed.js": "global:Typed"
   }
 }
