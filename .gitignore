@@ -1,4 +1,5 @@
 backend/games/*
 backend/save
+games/*/res/*
 start.go
 a.md
