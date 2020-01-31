@@ -3,6 +3,18 @@ class State {
 	text = ''
 	curText = ''
 	char: string = null
+	qid: string = null
+	qry: string = null
+	opts: string[] = null
+	_backgroundImage: string = null
+	backgroundImageChanged = false
+	get backgroundImage(): string {
+		return this._backgroundImage || '/transparent.png'
+	}
+	set backgroundImage(s: string) {
+		this._backgroundImage = s
+		this.backgroundImageChanged = true
+	}
 	applyText(s: string) {
 		this.text += this.curText
 		this.curText = s
@@ -13,6 +25,11 @@ const ops: { [key: string]: (engine: Engine, argv: string[]) => Promise<boolean>
 ops['\\char'] = async (engine, argv): Promise<boolean> => {
 	if (argv.length > 1) engine.state.char = argv[1]
 	else engine.state.char = null
+	await ops['\\clear'](engine, [])
+	return false
+}
+ops['\\background-image'] = async (engine, argv): Promise<boolean> => {
+	engine.state.backgroundImage = argv[1]
 	return false
 }
 ops['\\newline'] = async (engine, argv): Promise<boolean> => {
@@ -24,12 +41,29 @@ ops['\\clear'] = async (engine, argv): Promise<boolean> => {
 	return Boolean(argv[1])
 }
 ops['\\goto'] = async (engine, argv): Promise<boolean> => {
-	await engine.load(argv[1])
+	await engine.selectSection(argv[1])
 	return false
+}
+ops['\\query'] = async (engine, argv): Promise<boolean> => {
+	engine.state.qid = argv[1]
+	engine.state.qry = await engine.loadSection(argv[1])
+	return true
+}
+ops['\\options'] = async (engine, argv): Promise<boolean> => {
+	engine.state.qid = argv[1]
+	engine.state.opts = (await engine.loadSection(argv[1])).split('\n')
+	return true
 }
 opsType['\\script'] = 1
 ops['\\script'] = async (engine, argv): Promise<boolean> => {
-	(new Function(argv[1])).call(engine)
+	void (new Function(argv[1])).call(engine)
+	return false
+}
+ops['\\beginscript'] = async (engine, argv): Promise<boolean> => {
+	const code = []
+	let line: string
+	while ((line = engine.nextLine()) !== '\\endscript') code.push(line)
+	void (new Function(code.join('\n'))).call(engine)
 	return false
 }
 export default class Engine {
@@ -38,12 +72,16 @@ export default class Engine {
 	cnt1 = 0
 	lst: string[] = []
 	lst1: string[] = []
+	ans: { [key: string]: any } = {}
 	state: State
-	async load(sectionName: string) {
-		this.lst = (await axios.post('/api/read', {
+	async loadSection(sectionName: string): Promise<string> {
+		return (await axios.post('/api/read', {
 			gameName: this.gameName,
 			sectionName
-		})).data.split('\n')
+		})).data
+	}
+	async selectSection(sectionName: string) {
+		this.lst = (await this.loadSection(sectionName)).split('\n')
 		this.lst1 = []
 		this.cnt = this.cnt1 = 0
 	}

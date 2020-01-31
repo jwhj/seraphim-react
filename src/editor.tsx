@@ -29,6 +29,7 @@ export default () => {
 	const openSection = async (sectionName: string) => {
 		sectionContent.current.value = (await axios.post('/api/read', { gameName: gameName.current.value, sectionName })).data
 		curSectionName.current.value = sectionName
+		sectionContent.current.focus()
 	}
 	const deleteSection = async (sectionName: string) => {
 		await axios.post('/api/del', { gameName: gameName.current.value, sectionName })
@@ -36,7 +37,7 @@ export default () => {
 	}
 	return (
 		<div>
-			<Grid container xs={12} spacing={3}>
+			<Grid container spacing={3} style={{ width: '100%' }}>
 				<Grid item xs={3}>
 					<List>
 						<ListSubheader>
@@ -46,7 +47,7 @@ export default () => {
 							</ListItemSecondaryAction>
 						</ListSubheader>
 						{sectionList.map(x => (
-							<ListItem button onClick={() => openSection(x)}>
+							<ListItem button key={x} onClick={() => openSection(x)}>
 								{x}
 								<ListItemSecondaryAction>
 									<IconButton onClick={() => deleteSection(x)}>
@@ -67,7 +68,9 @@ export default () => {
 							}} />
 						<TextField label="Section name" InputLabelProps={{ shrink: true }} inputRef={curSectionName} />
 					</div>
-					<TextField multiline variant="filled" rows="30" label="Content" InputLabelProps={{ shrink: true }} inputRef={sectionContent} style={{ width: '100%' }}
+					<TextField multiline variant="filled" rows="30" label="Content"
+						InputLabelProps={{ shrink: true }} inputRef={sectionContent} style={{ width: '100%' }}
+						inputProps={{ style: { fontFamily: 'monospace' } }}
 						onBlur={() => {
 							axios.post('/api/write', {
 								gameName: gameName.current.value,

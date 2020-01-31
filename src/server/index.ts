@@ -1,5 +1,6 @@
 import Router from 'koa-router'
 import bodyParser from 'koa-bodyparser'
+import send from 'koa-send'
 import levelup from 'levelup'
 import leveldown from 'leveldown'
 const level = (s: string) => levelup(leveldown(s))
@@ -36,4 +37,8 @@ app.post('/api/del', async ctx => {
 	const db = getDb(ctx.request.body.gameName)
 	await db.del(ctx.request.body.sectionName)
 	ctx.body = 'ok'
+})
+app.get('/res/:gameName/*', async ctx => {
+	// ctx.body = ctx.path
+	await send(ctx, ctx.path.slice(ctx.params.gameName.length + 5), { root: `${process.cwd()}/games/${ctx.params.gameName}/res` })
 })
