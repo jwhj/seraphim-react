@@ -61,7 +61,8 @@ export default () => {
 				const ans = prompt(engine.state.qry)
 				engine.ans[engine.state.qid] = ans
 				engine.state.qry = null
-				setTimeout(next)
+				// setTimeout(next)
+				next()
 			}
 			else if (engine.state.opts) {
 				setShowOptions(true)
@@ -73,7 +74,7 @@ export default () => {
 				setText(engine.state.text)
 				type.current = new Typed('#type', {
 					strings: [engine.state.curText],
-					typeSpeed: 20,
+					typeSpeed: 35,
 					onComplete() {
 						finish()
 					}
@@ -96,7 +97,7 @@ export default () => {
 		await next()
 	}
 	return (
-		<div>
+		<>
 			<Fade in={tmp} timeout={1500}>
 				<div style={{
 					position: 'fixed',
@@ -158,6 +159,6 @@ export default () => {
 					</div>
 				</Card>
 			</div>
-		</div >
+		</>
 	)
 }
