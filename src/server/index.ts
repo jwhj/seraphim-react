@@ -5,14 +5,14 @@ import levelup from 'levelup'
 import leveldown from 'leveldown'
 import os from 'os'
 const level = (s: string) => levelup(leveldown(s))
-const db: { [key: string]: ReturnType<typeof level> } = {}
+const db: Map<string, ReturnType<typeof level>> = new Map()
 const app = new Router()
 app.use(bodyParser())
 export default app
 const gamesDir = `${os.homedir()}/.seraphim/games`
 const getDb = (s: string) => {
-	if (s in db) return db[s]
-	return db[s] = level(`${gamesDir}/${s}/db`)
+	if (!db.has(s)) db.set(s, level(`${gamesDir}/${s}/db`))
+	return db.get(s)
 }
 app.post('/api/lst', async ctx => {
 	const s = getDb(ctx.request.body.gameName).createKeyStream()

@@ -10,9 +10,9 @@ const {
 } = MaterialUI
 export default () => {
 	const [sectionList, setSectionList] = useState([])
-	const curSectionName = useRef(null)
-	const sectionContent = useRef(null)
-	const gameName = useRef(null)
+	const curSectionName = useRef<HTMLInputElement>()
+	const sectionContent = useRef<HTMLInputElement>()
+	const gameName = useRef<HTMLInputElement>()
 	const load = async () => {
 		const res = await axios.post('/api/lst', { gameName: gameName.current.value })
 		setSectionList((await axios.post('/api/lst', { gameName: gameName.current.value })).data)

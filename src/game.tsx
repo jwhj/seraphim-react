@@ -15,7 +15,7 @@ export default () => {
 	const [tmp, setTmp] = useState(false)
 	const [srcHeight, setSrcHeight] = useState('')
 	const [engineLoading, setEngineLoading] = useState(true)
-	const [char, setChar] = useState<string>(null)
+	const [char, setChar] = useState<string>()
 	const [text, setText] = useState('')
 	const [showOptions, setShowOptions] = useState(false)
 	const engine = useRef<Engine>()
@@ -46,7 +46,7 @@ export default () => {
 	}, [])
 	const finish = () => {
 		type.current.destroy()
-		type.current = null
+		type.current = undefined
 		const engine = getEngine()
 		setText(engine.state.text + engine.state.curText)
 	}
@@ -60,13 +60,13 @@ export default () => {
 			if (engine.state.qry) {
 				const ans = prompt(engine.state.qry)
 				engine.ans[engine.state.qid] = ans
-				engine.state.qry = null
+				engine.state.qry = undefined
 				// setTimeout(next)
 				next()
 			}
 			else if (engine.state.opts) {
 				setShowOptions(true)
-				// engine.state.opts = null
+				// engine.state.opts = undefined
 				// setTimeout(next)
 			}
 			else {
@@ -92,7 +92,7 @@ export default () => {
 	const choose = async (i: number, s: string) => {
 		const engine = getEngine()
 		engine.ans[engine.state.qid] = [i, s]
-		engine.state.opts = null
+		engine.state.opts = undefined
 		setShowOptions(false)
 		await next()
 	}

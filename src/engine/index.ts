@@ -2,11 +2,11 @@ import axios from 'axios'
 class State {
 	text = ''
 	curText = ''
-	char: string = null
-	qid: string = null
-	qry: string = null
-	opts: string[] = null
-	_backgroundImage: string = null
+	char: string
+	qid: string
+	qry: string
+	opts: string[]
+	_backgroundImage: string
 	backgroundImageChanged = false
 	get backgroundImage(): string {
 		return this._backgroundImage || '/transparent.png'
@@ -24,7 +24,7 @@ const opsType: { [key: string]: number } = {}
 const ops: { [key: string]: (engine: Engine, argv: string[]) => Promise<boolean> } = {}
 ops['\\char'] = async (engine, argv): Promise<boolean> => {
 	if (argv.length > 1) engine.state.char = argv[1]
-	else engine.state.char = null
+	else engine.state.char = undefined
 	await ops['\\clear'](engine, [])
 	return false
 }
