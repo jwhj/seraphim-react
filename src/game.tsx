@@ -11,8 +11,27 @@ const {
 	Fade,
 	List, ListItem
 } = MaterialUI
-export default () => {
+const BackgroundImage = ({ src, style, ...rest }: { src: string, style?: object }) => {
+	// const { style, ...rest1 } = rest
+	return (
+		<div style={Object.assign({
+			position: 'fixed',
+			top: 0,
+			left: 0,
+			width: '100%',
+			height: '100%',
+			backgroundPosition: 'center',
+			backgroundSize: 'cover',
+			backgroundImage: `url("${src}")`
+		}, style)}{...rest}></div>
+	)
+}
+const backgroundSwitchTimeout = 1000
+const showOptionsTimeout = { enter: 1500, exit: 500 }
+export default (props: { match: { params: { gameName: string } } }) => {
+	const gameName = props.match.params.gameName
 	const [tmp, setTmp] = useState(false)
+	const [prevBackgroundImage, setPrevBackgroundImage] = useState<string>()
 	const [srcHeight, setSrcHeight] = useState('')
 	const [engineLoading, setEngineLoading] = useState(true)
 	const [char, setChar] = useState<string>()
@@ -24,13 +43,9 @@ export default () => {
 		setSrcHeight(/Android|iPhone/i.test(navigator.userAgent) ? '8.5em' : '12em')
 	}
 	const getEngine = (): Engine => {
-		if (!engine.current) return engine.current = new Engine('test')
+		if (!engine.current) return engine.current = new Engine(gameName)
 		else return engine.current
 	}
-	// useEffect(() => {
-	// 	const engine = getEngine()
-	// 	setText(engine.state.text + engine.state.curText)
-	// }, [getEngine().state])
 	useEffect(() => {
 		void (async () => {
 			const engine = getEngine()
@@ -85,6 +100,7 @@ export default () => {
 				setTmp(false)
 				setTimeout(() => {
 					setTmp(true)
+					setTimeout(() => setPrevBackgroundImage(engine.state.backgroundImage), backgroundSwitchTimeout)
 				})
 			}
 		}
@@ -98,24 +114,20 @@ export default () => {
 	}
 	return (
 		<>
-			<Fade in={tmp} timeout={1500}>
-				<div style={{
-					position: 'fixed',
-					top: 0,
-					left: 0,
-					width: '100%',
-					height: '100%',
-					backgroundPosition: 'center',
-					backgroundSize: 'cover',
-					backgroundImage: `url("/res/test${getEngine().state.backgroundImage}")`
-				}}></div>
+			{prevBackgroundImage && <BackgroundImage src={`/res/${gameName}${prevBackgroundImage}`} />}
+			{/* <Fade in={!tmp} timeout={{ enter: 0, exit: 1500 }}>
+				<BackgroundImage src={`/res/f7${prevBackgroundImage}`} />
+			</Fade> */}
+			<Fade in={tmp} timeout={{ enter: backgroundSwitchTimeout, exit: 0 }}>
+				<BackgroundImage src={`/res/${gameName}${getEngine().state.backgroundImage}`} />
 			</Fade>
 			{/* {engineLoading ? 'Loading...' : (
 				<Button variant="outlined" onClick={next}>next<Icon>arrow_forward</Icon></Button>
 			)}
 			<br /> */}
-			<Modal open={showOptions} BackdropComponent={Backdrop} BackdropProps={{ transitionDuration: { enter: 1500, exit: 500 } }}>
-				<Fade in={showOptions} timeout={{ enter: 1500, exit: 500 }}>
+			<Modal open={showOptions} BackdropComponent={Backdrop}
+				BackdropProps={{ transitionDuration: showOptionsTimeout }}>
+				<Fade in={showOptions} timeout={showOptionsTimeout}>
 					<div style={{
 						padding: '5% 10%',
 						color: 'white',
@@ -138,6 +150,7 @@ export default () => {
 				display: 'flex',
 				justifyContent: 'center',
 				position: 'fixed',
+				left: 0,
 				bottom: 0
 			}}>
 				<Card elevation={4} style={{

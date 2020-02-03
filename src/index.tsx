@@ -8,7 +8,7 @@ const {
 ReactDOM.render(
 	<Router>
 		<Switch>
-			<Route exact path="/" component={Game} />
+			<Route path="/game/:gameName" component={Game} />
 			<Route path="/editor" component={Editor} />
 		</Switch>
 	</Router>,

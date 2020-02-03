@@ -73,6 +73,7 @@ export default class Engine {
 	lst: string[] = []
 	lst1: string[] = []
 	ans: { [key: string]: any } = {}
+	data = {}
 	state: State
 	async loadSection(sectionName: string): Promise<string> {
 		return (await axios.post('/api/read', {

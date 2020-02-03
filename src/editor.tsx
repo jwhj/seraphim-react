@@ -25,6 +25,7 @@ export default () => {
 			content: ''
 		})
 		await load()
+		await openSection(s)
 	}
 	const openSection = async (sectionName: string) => {
 		sectionContent.current.value = (await axios.post('/api/read', { gameName: gameName.current.value, sectionName })).data
@@ -66,7 +67,10 @@ export default () => {
 							onKeyDown={(evt: KeyboardEvent) => {
 								evt.key === 'Enter' && load()
 							}} />
-						<TextField label="Section name" InputLabelProps={{ shrink: true }} inputRef={curSectionName} />
+						<TextField label="Section name" InputLabelProps={{ shrink: true }} inputRef={curSectionName}
+							onKeyDown={(evt: KeyboardEvent) => {
+								evt.key === 'Enter' && openSection(curSectionName.current.value)
+							}} />
 					</div>
 					<TextField multiline variant="filled" rows="30" label="Content"
 						InputLabelProps={{ shrink: true }} inputRef={sectionContent} style={{ width: '100%' }}
