@@ -2,11 +2,10 @@ import React, { useState, useEffect, useRef } from 'react'
 import Engine from './engine'
 import Typed from 'typed.js'
 const {
-	Button,
+	Button, Fab,
 	Icon,
 	Card,
 	Divider,
-	Modal,
 	Backdrop,
 	Fade,
 	List, ListItem
@@ -65,7 +64,7 @@ export default (props: { match: { params: { gameName: string } } }) => {
 		const engine = getEngine()
 		setText(engine.state.text + engine.state.curText)
 	}
-	const next = async () => {
+	const next = async (): Promise<boolean> => {
 		const engine = getEngine()
 		if (type.current) {
 			finish()
@@ -76,13 +75,14 @@ export default (props: { match: { params: { gameName: string } } }) => {
 				const ans = prompt(engine.state.qry)
 				engine.ans[engine.state.qid] = ans
 				engine.state.qry = undefined
-				// setTimeout(next)
-				next()
+				setTimeout(next)
+				return false
 			}
 			else if (engine.state.opts) {
 				setShowOptions(true)
 				// engine.state.opts = undefined
 				// setTimeout(next)
+				return false
 			}
 			else {
 				setChar(engine.state.char)
@@ -104,6 +104,11 @@ export default (props: { match: { params: { gameName: string } } }) => {
 				})
 			}
 		}
+		return true
+	}
+	const fastForward = async (maxStep?: number) => {
+		maxStep = maxStep || Infinity
+		for (let i = 0; i < maxStep && await next(); i++);
 	}
 	const choose = async (i: number, s: string) => {
 		const engine = getEngine()
@@ -125,12 +130,12 @@ export default (props: { match: { params: { gameName: string } } }) => {
 				<Button variant="outlined" onClick={next}>next<Icon>arrow_forward</Icon></Button>
 			)}
 			<br /> */}
-			<Modal open={showOptions} BackdropComponent={Backdrop}
-				BackdropProps={{ transitionDuration: showOptionsTimeout }}>
-				<Fade in={showOptions} timeout={showOptionsTimeout}>
+			<Fade in={showOptions} timeout={showOptionsTimeout}>
+				<Backdrop open={showOptions} style={{ zIndex: 5 }}>
 					<div style={{
 						padding: '5% 10%',
 						color: 'white',
+						width: '100%',
 						height: '100%'
 					}}>
 						<List>
@@ -141,8 +146,17 @@ export default (props: { match: { params: { gameName: string } } }) => {
 							))}
 						</List>
 					</div>
-				</Fade>
-			</Modal>
+				</Backdrop>
+			</Fade>
+			<div style={{
+				position: 'fixed',
+				right: 0,
+				top: 0,
+				margin: 10
+			}}>
+				<Fab onClick={() => fastForward()} size="small" style={{ marginRight: 10 }}><Icon>directions_run</Icon></Fab>
+				<Fab onClick={() => fastForward(15)} size="small"><Icon>directions_walk</Icon></Fab>
+			</div>
 			<div style={{
 				width: '100%',
 				height: srcHeight,
