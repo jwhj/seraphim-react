@@ -1,13 +1,15 @@
+const zlib = require('zlib')
+const fs = require('fs')
 const Koa = require('koa')
 const app = new Koa()
 const Router = require('koa-router')
 const serve = require('koa-static')
-const mount = require('koa-mount')
+// const mount = require('koa-mount')
 const router = new Router()
 const { exec } = require('child_process')
 app.listen(4000)
 if (process.argv.indexOf('build') !== -1) {
-	exec('browserify -p tinyify src/index.js > public/bundle.js', (err) => {
+	exec('browserify -p tinyify src/index.js | gzip -c > public/bundle.js.gz', (err) => {
 		if (err) console.error(err)
 		process.exit()
 	})
@@ -25,10 +27,19 @@ if (process.argv.indexOf('debug') !== -1) {
 			.on('error', console.error)
 	})
 	// router.use('/source', serve('.'))
-	app.use(mount('/source', serve('.')))
+	// app.use(mount('/source', serve('.')))
+}
+else {
+	router.get('/bundle.js', ctx => {
+		ctx.set('Content-Type', 'text/javascript')
+		// ctx.body = zlib.gunzipSync(fs.readFileSync('./public/bundle.js.gz'))
+		const gunzipStream = zlib.createGunzip()
+		fs.createReadStream('./public/bundle.js.gz').pipe(gunzipStream)
+		ctx.body = gunzipStream
+	})
 }
 // router.use('/', serve(__dirname + '/public'))
 router.use(require('./src/server').default.routes())
 // app.use(require('./server').default.routes())
 app.use(router.routes())
-app.use(mount('/', serve('public')))
+app.use(serve('public'))

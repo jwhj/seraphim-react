@@ -56,6 +56,7 @@ export default (props: { match: { params: { gameName: string } } }) => {
 			addEventListener('touchmove', (e: TouchEvent) => {
 				e.preventDefault()
 			}, { passive: false })
+			next()
 		})()
 	}, [])
 	const finish = () => {
@@ -89,7 +90,7 @@ export default (props: { match: { params: { gameName: string } } }) => {
 				setText(engine.state.text)
 				type.current = new Typed('#type', {
 					strings: [engine.state.curText],
-					typeSpeed: 35,
+					typeSpeed: 27,
 					onComplete() {
 						finish()
 					}
