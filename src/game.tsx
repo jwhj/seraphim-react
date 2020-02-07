@@ -36,18 +36,19 @@ export default (props: { match: { params: { gameName: string } } }) => {
 	const [char, setChar] = useState<string>()
 	const [text, setText] = useState('')
 	const [showOptions, setShowOptions] = useState(false)
-	const engine = useRef<Engine>()
+	const engineRef = useRef<Engine>()
+	if (!engineRef.current) engineRef.current = new Engine(gameName)
+	const engine = engineRef.current
 	const type = useRef<Typed>()
 	const adjustSizes = () => {
 		setSrcHeight(/Android|iPhone/i.test(navigator.userAgent) ? '8.5em' : '12em')
 	}
-	const getEngine = (): Engine => {
-		if (!engine.current) return engine.current = new Engine(gameName)
-		else return engine.current
-	}
+	// const getEngine = (): Engine => {
+	// 	if (!engine.current) return engine.current = new Engine(gameName)
+	// 	else return engine.current
+	// }
 	useEffect(() => {
 		void (async () => {
-			const engine = getEngine()
 			await engine.selectSection('start')
 			// await new Promise(res => setTimeout(res, 1000))
 			setEngineLoading(false)
@@ -62,11 +63,9 @@ export default (props: { match: { params: { gameName: string } } }) => {
 	const finish = () => {
 		type.current.destroy()
 		type.current = undefined
-		const engine = getEngine()
 		setText(engine.state.text + engine.state.curText)
 	}
 	const next = async (): Promise<boolean> => {
-		const engine = getEngine()
 		if (type.current) {
 			finish()
 		}
@@ -112,7 +111,6 @@ export default (props: { match: { params: { gameName: string } } }) => {
 		for (let i = 0; i < maxStep && await next(); i++);
 	}
 	const choose = async (i: number, s: string) => {
-		const engine = getEngine()
 		engine.ans[engine.state.qid] = [i, s]
 		engine.state.opts = undefined
 		setShowOptions(false)
@@ -125,7 +123,7 @@ export default (props: { match: { params: { gameName: string } } }) => {
 				<BackgroundImage src={`/res/f7${prevBackgroundImage}`} />
 			</Fade> */}
 			<Fade in={tmp} timeout={{ enter: backgroundSwitchTimeout, exit: 0 }}>
-				<BackgroundImage src={`/res/${gameName}${getEngine().state.backgroundImage}`} />
+				<BackgroundImage src={`/res/${gameName}${engine.state.backgroundImage}`} />
 			</Fade>
 			{/* {engineLoading ? 'Loading...' : (
 				<Button variant="outlined" onClick={next}>next<Icon>arrow_forward</Icon></Button>
@@ -140,7 +138,7 @@ export default (props: { match: { params: { gameName: string } } }) => {
 						height: '100%'
 					}}>
 						<List>
-							{showOptions && getEngine().state.opts.map((x, i) => (
+							{showOptions && engine.state.opts.map((x, i) => (
 								<ListItem key={i} button onClick={() => choose(i, x)}>
 									{x}
 								</ListItem>
