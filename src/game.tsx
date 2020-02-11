@@ -8,7 +8,8 @@ const {
 	Divider,
 	Backdrop,
 	Fade,
-	List, ListItem
+	List, ListItem,
+	Drawer
 } = MaterialUI
 const BackgroundImage = ({ src, style, ...rest }: { src: string, style?: object }) => {
 	// const { style, ...rest1 } = rest
@@ -36,6 +37,7 @@ export default (props: { match: { params: { gameName: string } } }) => {
 	const [char, setChar] = useState<string>()
 	const [text, setText] = useState('')
 	const [showOptions, setShowOptions] = useState(false)
+	const [showMenu, setShowMenu] = useState(false)
 	const engineRef = useRef<Engine>()
 	if (!engineRef.current) engineRef.current = new Engine(gameName)
 	const engine = engineRef.current
@@ -57,9 +59,22 @@ export default (props: { match: { params: { gameName: string } } }) => {
 			addEventListener('touchmove', (e: TouchEvent) => {
 				e.preventDefault()
 			}, { passive: false })
+			addEventListener('keydown', handleKeyDown)
 			next()
 		})()
 	}, [])
+	const handleKeyDown = (evt: KeyboardEvent) => {
+		switch (evt.key) {
+			case 'Escape':
+				setShowMenu(true)
+				break;
+			case ' ':
+				next()
+				break;
+			default:
+				break;
+		}
+	}
 	const finish = () => {
 		type.current.destroy()
 		type.current = undefined
@@ -71,6 +86,10 @@ export default (props: { match: { params: { gameName: string } } }) => {
 		}
 		else {
 			await engine.next()
+			// localforage.setItem('test', engine)
+			// const a = await localforage.getItem('test') as unknown as { gameName: string }
+			// console.log(a)
+			// console.log(Engine.from(a).state.backgroundImage)
 			if (engine.state.qry) {
 				const ans = prompt(engine.state.qry)
 				engine.ans[engine.state.qid] = ans
@@ -89,7 +108,7 @@ export default (props: { match: { params: { gameName: string } } }) => {
 				setText(engine.state.text)
 				type.current = new Typed('#type', {
 					strings: [engine.state.curText],
-					typeSpeed: 27,
+					typeSpeed: 35,
 					onComplete() {
 						finish()
 					}
@@ -156,6 +175,24 @@ export default (props: { match: { params: { gameName: string } } }) => {
 				<Fab onClick={() => fastForward()} size="small" style={{ marginRight: 10 }}><Icon>directions_run</Icon></Fab>
 				<Fab onClick={() => fastForward(15)} size="small"><Icon>directions_walk</Icon></Fab>
 			</div>
+			<Fab size="small" color="primary" onClick={() => setShowMenu(true)} style={{
+				position: 'fixed',
+				left: 0,
+				top: 0,
+				margin: 10,
+				zIndex: 6
+			}}>
+				<Icon>dehaze</Icon>
+			</Fab>
+			<Drawer open={showMenu} onClose={() => setShowMenu(false)}>
+				<div style={{ width: document.documentElement.clientWidth * 0.35, padding: 10 }}>
+					<List>
+						<ListItem button>
+							Saves
+						</ListItem>
+					</List>
+				</div>
+			</Drawer>
 			<div style={{
 				width: '100%',
 				height: srcHeight,

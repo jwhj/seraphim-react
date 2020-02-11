@@ -75,6 +75,18 @@ export default class Engine {
 	ans: { [key: string]: any } = {}
 	data = {}
 	state: State
+	constructor(gameName: string) {
+		this.gameName = gameName
+		this.state = new State()
+	}
+	static from(obj: object): Engine {
+		// -------------------------------- CAUTION --------------------------------
+		// This implementation should be further considered.
+		Object.setPrototypeOf(obj, Engine.prototype)
+		if (!obj.hasOwnProperty('state')) obj['state'] = new State()
+		else Object.setPrototypeOf(obj['state'], State.prototype)
+		return obj as Engine
+	}
 	async loadSection(sectionName: string): Promise<string> {
 		return (await axios.post('/api/read', {
 			gameName: this.gameName,
@@ -117,9 +129,5 @@ export default class Engine {
 				else throw `Unexpected token ${lst[0]}`
 			}
 		}
-	}
-	constructor(gameName: string) {
-		this.gameName = gameName
-		this.state = new State()
 	}
 }

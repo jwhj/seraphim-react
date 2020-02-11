@@ -1,5 +1,4 @@
 const zlib = require('zlib')
-const fs = require('fs')
 const Koa = require('koa')
 const app = new Koa()
 const Router = require('koa-router')
@@ -17,7 +16,6 @@ if (process.argv.indexOf('build') !== -1) {
 if (process.argv.indexOf('debug') !== -1) {
 	const browserify = require('browserify')
 	const stringify = require('stringify')
-	const sourceify = require('sourceify')
 	router.get('/bundle.js', ctx => {
 		ctx.set('Content-Type', 'text/javascript')
 		ctx.body = browserify('src/index.js', { debug: true })
@@ -28,15 +26,6 @@ if (process.argv.indexOf('debug') !== -1) {
 	})
 	// router.use('/source', serve('.'))
 	// app.use(mount('/source', serve('.')))
-}
-else {
-	router.get('/bundle.js', ctx => {
-		ctx.set('Content-Type', 'text/javascript')
-		// ctx.body = zlib.gunzipSync(fs.readFileSync('./public/bundle.js.gz'))
-		const gunzipStream = zlib.createGunzip()
-		fs.createReadStream('./public/bundle.js.gz').pipe(gunzipStream)
-		ctx.body = gunzipStream
-	})
 }
 // router.use('/', serve(__dirname + '/public'))
 router.use(require('./src/server').default.routes())

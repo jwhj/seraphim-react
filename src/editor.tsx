@@ -43,7 +43,7 @@ export default () => {
 					<List>
 						<ListSubheader>
 							Sections
-						<ListItemSecondaryAction>
+							<ListItemSecondaryAction>
 								<Button variant="contained" disableElevation onClick={handleAddSection}>Add</Button>
 							</ListItemSecondaryAction>
 						</ListSubheader>
