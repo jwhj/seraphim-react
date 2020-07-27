@@ -2,17 +2,7 @@
   "name": "seraphim",
   "version": "1.0.0",
   "main": "index.js",
-  "repository": "https://github.com/jwhj/seraphim",
+  "repository": "https://github.com/jwhj/seraphim-react",
   "author": "jwhj <jyuuku@outlook.com>",
-  "license": "MIT",
-  "browserify": {
-    "transform": [
-      "browserify-shim"
-    ]
-  },
-  "browserify-shim": {
-    "react": "global:React",
-    "axios": "global:axios",
-    "typed.js": "global:Typed"
-  }
+  "license": "MIT"
 }

@@ -1,15 +1,14 @@
 {
 	"compilerOptions": {
 		"esModuleInterop": true,
-		"target": "ES2017",
-		"module": "commonjs",
-		"inlineSourceMap": true,
-		"inlineSources": true,
+		"target": "ES2018",
+		"moduleResolution": "node",
+		"sourceMap": true,
 		"jsx": "react"
 	},
 	"files": [
 		"src/global.d.ts",
 		"src/index.tsx",
-		"src/server/index.ts"
+		// "src/server/index.ts"
 	]
 }
