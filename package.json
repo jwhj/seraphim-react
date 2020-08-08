@@ -2,6 +2,9 @@
   "name": "seraphim",
   "version": "1.0.0",
   "main": "index.js",
+  "browser":{
+    "react":"./shims/react.js"
+  },
   "repository": "https://github.com/jwhj/seraphim-react",
   "author": "jwhj <jyuuku@outlook.com>",
   "license": "MIT"

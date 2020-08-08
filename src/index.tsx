@@ -1,7 +1,7 @@
 import React, { useState } from "react"
 import Editor from "./editor"
 import Game from "./game"
-import { defineStyle } from './define-style'
+import { usePrompt } from "./dialog-utils"
 const {
 	HashRouter: Router,
 	Switch,
@@ -13,13 +13,14 @@ const {
 	Button
 } = MaterialUI
 const Index = () => {
-	const barStyle = defineStyle({
+	const barStyle: StyleType = {
 		width: '30%',
 		marginBottom: 10
-	})
+	}
 	const history = useHistory()
-	const start = () => {
-		const gameName = prompt('Game name:')
+	const [$prompt, node] = usePrompt()
+	const start = async () => {
+		const gameName = await $prompt('Game name:')
 		if (gameName) {
 			history.push(`/game/${gameName}`)
 		}
@@ -36,6 +37,7 @@ const Index = () => {
 				<Button style={barStyle} variant="contained" onClick={start}>Start</Button>
 				<Link style={barStyle} variant="contained" to="/editor" component={Button}>Editor</Link>
 			</div>
+			{node}
 		</React.Fragment>
 	)
 }
@@ -46,6 +48,6 @@ ReactDOM.render(
 			<Route path="/game/:gameName" component={Game} />
 			<Route path="/editor" component={Editor} />
 		</Switch>
-	</Router >,
+	</Router>,
 	document.querySelector("#app"),
 )

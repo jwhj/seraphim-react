@@ -1,10 +1,11 @@
-import React, { useState, useEffect, useRef } from "react"
+import React, { useState, useEffect, useRef, useCallback } from "react"
 import Saves from "./saves"
 import Engine from "./engine"
 import Typed from "typed.js"
-import { defineStyle } from "./define-style"
+import uuid from 'uuid/v4'
+import { usePrompt } from './dialog-utils'
 const {
-	Button,
+	IconButton,
 	Fab,
 	Icon,
 	Card,
@@ -37,13 +38,14 @@ const BackgroundImage = (
 		</div>
 	)
 }
-const backgroundSwitchTimeout = 1000
+const backgroundSwitchTimeout = 500
 const showOptionsTimeout = { enter: 1500, exit: 500 }
 const saves = localforage.createInstance({ name: "saves" })
 export default (props: { match: { params: { gameName: string } } }) => {
 	const gameName = props.match.params.gameName
 	const [tmp, setTmp] = useState(false)
-	const [prevBackgroundImage, setPrevBackgroundImage] = useState<string>()
+	// const [prevBackgroundImage, setPrevBackgroundImage] = useState<string>()
+	const [backgroundImageList, setBackgroundImageList] = useState<[string, string][]>([])
 	const [srcHeight, setSrcHeight] = useState("")
 	const [engineLoading, setEngineLoading] = useState(true)
 	const [char, setChar] = useState<string>()
@@ -56,6 +58,8 @@ export default (props: { match: { params: { gameName: string } } }) => {
 	const engine = engineRef.current
 	const type = useRef<Typed>()
 	const selectType = useRef<string>()
+	const ignoreAction = useRef(false)
+	const [$prompt, node] = usePrompt()
 	const adjustSizes = () => {
 		setSrcHeight(
 			/Android|iPhone/i.test(navigator.userAgent) ? "8.5em" : "12em",
@@ -75,12 +79,18 @@ export default (props: { match: { params: { gameName: string } } }) => {
 			addEventListener("touchmove", (e: TouchEvent) => {
 				e.preventDefault()
 			}, { passive: false })
-			addEventListener("keydown", handleKeyDown)
+			addEventListener('keydown', handleKeyDown)
+			document.querySelectorAll('button').forEach(item => {
+				item.addEventListener('mousedown', e => e.preventDefault(), { passive: false })
+			})
 			next()
 		})()
+		return () => {
+			removeEventListener('keydown', handleKeyDown)
+		}
 	}, [])
-	const handleKeyDown = (evt: KeyboardEvent) => {
-		switch (evt.key) {
+	const handleKeyDown = useCallback((e: KeyboardEvent) => {
+		switch (e.key) {
 			case "Escape":
 				setShowMenu(true)
 				break
@@ -90,42 +100,50 @@ export default (props: { match: { params: { gameName: string } } }) => {
 			default:
 				break
 		}
-	}
+	}, [])
 	const finish = () => {
+		const engine = engineRef.current
 		type.current.destroy()
 		type.current = undefined
 		setText(engine.state.text + engine.state.curText)
 	}
-	const updateFromEngine = (restoreFromSave?: boolean): boolean => {
+	const updateFromEngine = async (restoreFromSave?: boolean): Promise<boolean> => {
 		const engine = engineRef.current
-		if (restoreFromSave) {
-			setChar(engine.state.char)
-			setText(engine.state.text + engine.state.curText)
-			setShowOptions(false)
-		}
+		// if (restoreFromSave) {
+		// 	setChar(engine.state.char)
+		// 	setText(engine.state.text + engine.state.curText)
+		// 	setShowOptions(false)
+		// }
 		if (engine.state.backgroundImageChanged || restoreFromSave) {
 			engine.state.backgroundImageChanged = false
-			setTmp(false)
-			setTimeout(() => {
-				setTmp(true)
-				setTimeout(
-					() => setPrevBackgroundImage(engine.state.backgroundImage),
-					backgroundSwitchTimeout,
-				)
-			})
+			// setTmp(false)
+			// setTimeout(() => {
+			// 	setTmp(true)
+			// 	setTimeout(
+			// 		() => setPrevBackgroundImage(engine.state.backgroundImage),
+			// 		backgroundSwitchTimeout,
+			// 	)
+			// })
+			const item: [string, string] = [engine.state.backgroundImage, uuid()]
+			backgroundImageList.push(item)
+			if (backgroundImageList.length > 10) backgroundImageList.splice(0, 5)
+			setBackgroundImageList(backgroundImageList)
 		}
 		if (engine.state.qry) {
-			const ans = prompt(engine.state.qry)
+			ignoreAction.current = true
+			const ans = await $prompt(engine.state.qry)
 			engine.ans[engine.state.qid] = ans
 			engine.state.qry = undefined
 			setTimeout(next)
+			ignoreAction.current = false
 			return false
 		} else if (engine.state.opts) {
+			ignoreAction.current = true
 			setShowOptions(true)
 			// engine.state.opts = undefined
 			// setTimeout(next)
 			return false
-		} else if (!restoreFromSave) {
+		} else {
 			setChar(engine.state.char)
 			setText(engine.state.text)
 			type.current = new Typed("#type", {
@@ -142,9 +160,9 @@ export default (props: { match: { params: { gameName: string } } }) => {
 		const engine = engineRef.current
 		if (type.current) {
 			finish()
-		} else {
+		} else if (!ignoreAction.current) {
 			if (!flag) await engine.next()
-			if (!updateFromEngine()) return false
+			if (!await updateFromEngine()) return false
 		}
 		return true
 	}
@@ -156,47 +174,57 @@ export default (props: { match: { params: { gameName: string } } }) => {
 		engine.ans[engine.state.qid] = [i, s]
 		engine.state.opts = undefined
 		setShowOptions(false)
+		ignoreAction.current = false
 		await next()
 	}
 	const onSelect = async (saveName: string) => {
 		if (selectType.current === "load") {
 			engineRef.current = Engine.from(await saves.getItem(saveName))
-			updateFromEngine(true)
+			if (type.current) {
+				type.current.destroy()
+				type.current = undefined
+			}
 			setShowSaves(false)
 			setShowMenu(false)
+			await updateFromEngine(true)
 		} else if (selectType.current === "save") {
-			saves.setItem(saveName, engine)
+			await saves.setItem(saveName, engine)
 		}
 	}
 	return (
-		<>
-			{prevBackgroundImage &&
-				<BackgroundImage src={`/res/${gameName}${prevBackgroundImage}`} />}
+		<React.Fragment>
+			{/* {prevBackgroundImage &&
+				<BackgroundImage src={`/res/${gameName}${prevBackgroundImage}`} />} */}
 			{/* <Fade in={!tmp} timeout={{ enter: 0, exit: 1500 }}>
 				<BackgroundImage src={`/res/f7${prevBackgroundImage}`} />
 			</Fade> */}
-			<Fade in={tmp} timeout={{ enter: backgroundSwitchTimeout, exit: 0 }}>
+			{/* <Fade in={tmp} timeout={{ enter: backgroundSwitchTimeout, exit: 0 }}>
 				<BackgroundImage
 					src={`/res/${gameName}${engine.state.backgroundImage}`}
 				/>
-			</Fade>
+			</Fade> */}
+			{backgroundImageList.map(item => (
+				<Fade key={item[1]} in={true} timeout={{ enter: backgroundSwitchTimeout, exit: 0 }}>
+					<BackgroundImage src={`/res/${gameName}${item[0]}`} />
+				</Fade>
+			))}
 			{/* {engineLoading ? 'Loading...' : (
 				<Button variant="outlined" onClick={next}>next<Icon>arrow_forward</Icon></Button>
 			)}
 			<br /> */}
 			<Fade in={showOptions} timeout={showOptionsTimeout}>
-				<Backdrop open={showOptions} style={{ zIndex: 5 }}>
+				<Backdrop open={showOptions} style={{ zIndex: 5, backgroundColor: 'rgba(0,0,0,0.7)' }}>
 					<div
 						style={{
-							padding: "5% 10%",
+							padding: "10%",
 							color: "white",
 							width: "100%",
 							height: "100%",
 						}}
 					>
-						<List>
+						<List style={{ width: '70%' }}>
 							{engine.state.opts && engine.state.opts.map((x, i) => (
-								<ListItem key={i} button onClick={() => choose(i, x)}>
+								<ListItem className="options-item" key={i} button onClick={() => choose(i, x)}>
 									{x}
 								</ListItem>
 							))}
@@ -273,11 +301,16 @@ export default (props: { match: { params: { gameName: string } } }) => {
 				onClose={() => setShowSaves(false)}
 				maxWidth="md"
 				fullWidth
+				PaperProps={{
+					style: {
+						height: '80%'
+					}
+				}}
 			>
 				<Saves onSelect={onSelect} />
 			</Dialog>
 			<div
-				style={defineStyle({
+				style={{
 					width: "100%",
 					height: srcHeight,
 					padding: 10,
@@ -287,7 +320,7 @@ export default (props: { match: { params: { gameName: string } } }) => {
 					left: 0,
 					bottom: 0,
 					userSelect: 'none'
-				})}
+				}}
 			>
 				<Card
 					elevation={4}
@@ -312,6 +345,7 @@ export default (props: { match: { params: { gameName: string } } }) => {
 					</div>
 				</Card>
 			</div>
-		</>
+			{node}
+		</React.Fragment >
 	)
 }

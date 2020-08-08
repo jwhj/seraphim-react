@@ -1,14 +1,16 @@
 {
 	"compilerOptions": {
+		"outDir": "dist",
 		"esModuleInterop": true,
 		"target": "ES2018",
 		"moduleResolution": "node",
+		"noImplicitAny": true,
 		"sourceMap": true,
-		"jsx": "react"
+		"jsx": "react",
+		"incremental": true
 	},
 	"files": [
 		"src/global.d.ts",
-		"src/index.tsx",
-		// "src/server/index.ts"
+		"src/index.tsx"
 	]
 }

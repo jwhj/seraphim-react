@@ -1,9 +1,8 @@
 import resolve from '@rollup/plugin-node-resolve'
 import commonjs from '@rollup/plugin-commonjs'
-import { string as str } from 'rollup-plugin-string'
-import sourcemap from 'rollup-plugin-sourcemaps'
+import sourcemaps from 'rollup-plugin-sourcemaps'
 export default {
-	input: 'src/index.js',
+	input: 'dist/index.js',
 	output: {
 		file: 'public/bundle.js',
 		format: 'umd',
@@ -20,9 +19,6 @@ export default {
 			browser: true
 		}),
 		commonjs(),
-		str({
-			include: 'src/components/*.html'
-		}),
-		sourcemap()
+		sourcemaps()
 	]
 }
